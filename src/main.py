@@ -1,17 +1,21 @@
 import tkinter as tk
 from tkinter import ttk
 import random
-import tkinter as tk
-from tkinter import ttk
 from tkinter import *
 from playsound3 import playsound
-
+import threading
 # ------ Variables ------
 diff_dic = {
     "Easy": [9, 9, 10],
     "Medium": [16, 16, 40],
     "Hard": [16, 30, 99]
 }
+
+def e(name):
+    playsound(name)
+
+def play_wav(f):
+    threading.Thread(target=e, args=(f,)).start()
 
 icones={
     "mine_safe": r"img\\mine\\mine_safe.png",
@@ -87,8 +91,6 @@ img_seven = imgs["seven"]
 img_eight = imgs["eight"]
 img_gray_ababab = imgs["gray_ababab"]
 
-visited_cases=[]
-
 def nb_cases(x, y, r_mine):
     mined = []
     all_cases = []
@@ -115,6 +117,8 @@ def generate_full_grid(difficulty,death):
     mine_remaining = mines
     death = death
     
+    visited_cases=[]
+
     # Label above the grid with the grid manager
     label = ttk.Label(game_root, text=f"Remaining mines: {mine_remaining}", font=("Poppins",14, "bold"))
     label.grid(row=0, column=0, columnspan=cols, sticky="n", padx=5, pady=5)
@@ -193,6 +197,7 @@ def generate_full_grid(difficulty,death):
                         empty_box(case_list[i])
             else:
                 btn.config(image=imgs[numbers[mine]],background="#ABABAB")
+                btn.data["number"] = True
 
         else:
             pass
@@ -239,7 +244,7 @@ def generate_full_grid(difficulty,death):
         label.config(text=f"Remaining mines: {mine_remaining}")
 
     def right_clic(event):
-        playsound(sound[right_clic])
+        play_wav(sound.get("right_clic"))
         nonlocal death
         if death==False:
             if mine_remaining>0:
@@ -274,10 +279,9 @@ def generate_full_grid(difficulty,death):
                 event.widget.config(background='#ABABAB')
         else:
             if event.widget.cget("image") != str(event.widget.data["img_mine_boom"]):
-                event.widget.config(image=img_gray_blank)
+                event.widget.config(background='#797D79')
             else:
                 event.widget.config(background='#797D79')
-
 
     def right_clic_release(event):
         if (event.widget.cget("image") == (str(event.widget.data["img_gray"])) or
@@ -286,20 +290,24 @@ def generate_full_grid(difficulty,death):
         if event.widget.config("background")[4] == "#ABABAB":
             pass
         else:
-            if event.widget.data["is_mined"] is False:
+            if (event.widget.data["is_mined"] == False and event.widget.data["number"] == False and
+                    (event.widget.cget("image") != (str(event.widget.data["flag"])))):
                 event.widget.config(background='#454745', image=img_gray)
             else:
-                event.widget.config(background='#454745')
+                if event.widget.data["is_mined"] == True:
+                    event.widget.config(background='#454745')
+                else:
+                    event.widget.config(background='#ABABAB')
 
     def left_clic(event):
-        playsound(sound["left_clic"])
+        play_wav(sound.get("left_clic"))
         nonlocal death
         if death==False:
             if event.widget.cget("image") == str(event.widget.data["flag"]):
                 event.widget.config(background="#ABABAB")
             else:
                 if event.widget.data["is_mined"]:
-                    playsound(sound["mine_boom"])
+                    play_wav(sound.get("mine_boom"))
                     event.widget.config(image=event.widget.data["img_mine_boom"])
 
                     # --------------------- ALL MINES EXPLODE -------------- #
@@ -307,7 +315,7 @@ def generate_full_grid(difficulty,death):
                         for j in range(diff_dic[difficulty][0]):
                             future_bomb = buttons.get((i,j))
                             if future_bomb.data["is_mined"]:
-                                future_bomb.config(image=future_bomb.data["img_mine_boom"])
+                                future_bomb.config(image=future_bomb.data["img_mine_boom"], background="#454745")
                     death = True
 
                 else:
@@ -322,7 +330,8 @@ def generate_full_grid(difficulty,death):
                         empty_box(event.widget)
         else:
             if event.widget.cget("image") != str(event.widget.data["img_mine_boom"]):
-                event.widget.config(image=img_gray_blank)
+                if event.widget.data["number"]:
+                    event.widget.config(background="#797D79")
 
     def left_clic_release(event):
         nonlocal death
@@ -331,10 +340,9 @@ def generate_full_grid(difficulty,death):
                 event.widget.config(image=event.widget.data["bg"],background='#ABABAB')
             elif event.widget.cget("image") == str(event.widget.data["flag"]):
                 event.widget.config(background='#ABABAB')
-        
         else:
-            if event.widget.data["is_mined"] is False:
-                event.widget.config(background='#454745', image=img_gray)
+            if event.widget.data["number"] == True:
+                event.widget.config(background='#ABABAB')
 
     def create_button(bg,r,c,is_mined):
         btn=tk.Button(
