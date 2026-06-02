@@ -14,8 +14,6 @@ diff_dic = {
     "Hard": [16, 30, 99]
 }
 
-sentence = ""
-
 icones={
     "mine_safe": r"img\\mine\\mine_safe.png",
     "mine_boom": r"img\\mine\\mine_boom.png",
