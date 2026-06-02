@@ -71,17 +71,13 @@ tk.Button(
 
 # -------- Functions --------
 
-def normalize(img_path, size=40):
-    img = PhotoImage(file=img_path)
-    return img.zoom(size, size).subsample(img.width(), img.height())
+def normalize(img_path):
+    return PhotoImage(file=img_path)
 
 imgs = {key: normalize(path) for key, path in icones.items()}
 
-def e(name):
-    playsound(name)
-
 def play_wav(f):
-    g = multiprocessing.Process(target=e, args=(f,))
+    g = multiprocessing.Process(target=playsound, args=(f,))
     g.start()
 
 def kill_music():
@@ -436,7 +432,8 @@ def generate_full_grid(difficulty,deat):
     for r in range(rows):
         for c in range(cols):
             if (r, c) in case_mined:
-                bg = img_mine
+                #bg = img_mine
+                pass
             else:
                 bg = img_gray
             btn = create_button(bg,r,c,is_mined=(r, c) in case_mined)
