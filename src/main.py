@@ -3,8 +3,10 @@ from tkinter import ttk
 import random
 from tkinter import *
 from playsound3 import playsound
-import multiprocessing
+import threading
 import os, signal, re
+import sys
+import multiprocessing
 
 # ------ Variables ------
 
@@ -14,23 +16,28 @@ diff_dic = {
     "Hard": [16, 30, 99]
 }
 
-sentence = ""
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
-icones={
-    "mine_safe": r"img\\mine\\mine_safe.png",
-    "mine_boom": r"img\\mine\\mine_boom.png",
-    "flag": r"img\\flag\\flag.png",
-    "one": r"img\\numbers\\one.png",
-    "two": r"img\\numbers\\two.png",
-    "three": r"img\\numbers\\three.png",
-    "four": r"img\\numbers\\four.png",
-    "five": r"img\\numbers\\five.png",
-    "six": r"img\\numbers\\six.png",
-    "seven": r"img\\numbers\\seven.png",
-    "eight": r"img\\numbers\\eight.png",
-    "gray": r"img\\gray\\gray.png",
-    "gray_blank":  r"img\\gray\\gray_blank.png",
-    "gray_ababab":  r"img\\gray\\gray_ababab.png"
+icones = {
+    "mine_safe": resource_path("img/mine/mine_safe.png"),
+    "mine_boom": resource_path("img/mine/mine_boom.png"),
+    "flag": resource_path("img/flag/flag.png"),
+    "one": resource_path("img/numbers/one.png"),
+    "two": resource_path("img/numbers/two.png"),
+    "three": resource_path("img/numbers/three.png"),
+    "four": resource_path("img/numbers/four.png"),
+    "five": resource_path("img/numbers/five.png"),
+    "six": resource_path("img/numbers/six.png"),
+    "seven": resource_path("img/numbers/seven.png"),
+    "eight": resource_path("img/numbers/eight.png"),
+    "gray": resource_path("img/gray/gray.png"),
+    "gray_blank": resource_path("img/gray/gray_blank.png"),
+    "gray_ababab": resource_path("img/gray/gray_ababab.png"),
 }
 
 numbers = {1:'one', 2:'two', 3:'three', 4:'four', 5:'five', 6:'six', 7:'seven', 8:'eight'}
@@ -38,16 +45,16 @@ numbers = {1:'one', 2:'two', 3:'three', 4:'four', 5:'five', 6:'six', 7:'seven', 
 dead = False
 
 sound = {
-    "left_clic": r"sfx\\lc.wav",
-    "right_clic": r"sfx\\rc.wav",
-    "bgm": r"sfx\\bgm.wav"
+    "left_clic": resource_path("sfx/lc.wav"),
+    "right_clic": resource_path("sfx/rc.wav"),
+    "bgm": resource_path("sfx/bgm.wav")
 }
-
 music = False
 
 # ------ Elements first window ------
 main_root = tk.Tk()
 main_root.title("Menu")
+
 
 
 tk.Label(
@@ -77,8 +84,7 @@ def normalize(img_path):
 imgs = {key: normalize(path) for key, path in icones.items()}
 
 def play_wav(f):
-    g = multiprocessing.Process(target=playsound, args=(f,))
-    g.start()
+    threading.Thread(target=playsound, args=(f,), daemon=True).start()
 
 def kill_music():
     pids = re.findall(r"python\.exe\s+(\d+)", os.popen('tasklist').read())
@@ -356,6 +362,10 @@ def generate_full_grid(difficulty,deat):
                             if future_bomb.data["is_mined"]:
                                 future_bomb.config(image=future_bomb.data["img_mine_boom"], background="#454745")
                     death = True
+                    tk.Button(
+                        game_root,
+                        text="Restart:",
+                        command=lambda: on_close()).place(relx=1, rely=0.01, anchor="ne")
 
                 else:
                     coord=find_number(event.widget)
@@ -448,6 +458,7 @@ def generate_full_grid(difficulty,deat):
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     play_wav(sound["bgm"])
     main_root.mainloop()
     kill_music()
